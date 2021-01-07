@@ -1,17 +1,28 @@
 import { Card, CardContent } from '@material-ui/core';
 import { Formik, Form, Field } from 'formik';
 import { TextField, CheckboxWithLabel } from 'formik-material-ui';
+import * as yup from 'yup';
 
 export default function Home() {
   return (
     <Card>
       <CardContent>
         <Formik
+          validationSchema={yup.object({
+            money: yup.mixed().when('millionaire', {
+              is: true,
+              then: yup
+                .number()
+                .required()
+                .min(1000000, "But you said you're a millionaire."),
+              other: yup.number().required(),
+            }),
+          })}
           initialValues={{
             firstname: '',
             lastname: '',
             millionaire: false,
-            money: '',
+            money: 0,
             description: '',
           }}
           onSubmit={() => {}}
@@ -29,7 +40,7 @@ export default function Home() {
               type="number"
               name="money"
               component={TextField}
-              label="I have Money"
+              label="Money I have!"
             />
             <Field
               name="description"
