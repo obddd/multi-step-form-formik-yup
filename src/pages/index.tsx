@@ -1,13 +1,14 @@
 import { Card, CardContent } from '@material-ui/core';
-import { Formik, Form, Field } from 'formik';
+import { Formik, Form, Field, FormikConfig, FormikValues } from 'formik';
 import { TextField, CheckboxWithLabel } from 'formik-material-ui';
 import * as yup from 'yup';
+import React, { useState } from 'react'
 
 export default function Home() {
   return (
     <Card>
       <CardContent>
-        <Formik
+        <FormikStepper
           validationSchema={yup.object({
             money: yup.mixed().when('millionaire', {
               is: true,
@@ -27,7 +28,8 @@ export default function Home() {
           }}
           onSubmit={() => {}}
         >
-          <Form autoComplete="off">
+          
+            <div>
             <Field name="firstname" component={TextField} label="First Name" />
             <Field name="lastname" component={TextField} label="Last Name" />
             <Field
@@ -36,20 +38,35 @@ export default function Home() {
               component={CheckboxWithLabel}
               Label={{ label: 'I am a millionaire!' }}
             />
+            </div>
+            <div>
             <Field
               type="number"
               name="money"
               component={TextField}
               label="Money I have!"
             />
+            </div>
+            <div>
             <Field
               name="description"
               component={TextField}
               label="Description"
             />
-          </Form>
-        </Formik>
+            </div>
+        </FormikStepper>
       </CardContent>
     </Card>
   );
+}
+
+export function FormikStepper({children, ...props}:FormikConfig<FormikValues>) {
+  const childrenArray = React.Children.toArray(children)
+  const [step, setStep] = useState(0)
+  const currentChild = childrenArray[step]
+  return(
+    <Formik {...props}>
+      <Form autoComplete="off">{currentChild}</Form>
+    </Formik>
+  )
 }
