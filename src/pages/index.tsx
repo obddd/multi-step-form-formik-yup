@@ -1,8 +1,20 @@
-import { Box, Card, CardContent, Button,Stepper, StepLabel, Step } from '@material-ui/core';
+import {
+  Box,
+  Card,
+  CardContent,
+  Button,
+  Stepper,
+  StepLabel,
+  Step,
+  Grid,
+  CircularProgress,
+} from '@material-ui/core';
 import { Formik, Form, Field, FormikConfig, FormikValues } from 'formik';
 import { TextField, CheckboxWithLabel } from 'formik-material-ui';
 import * as yup from 'yup';
 import React, { useState } from 'react';
+
+const sleep = (time) => new Promise((acc) => setTimeout(acc, time));
 
 export default function Home() {
   return (
@@ -16,7 +28,10 @@ export default function Home() {
             money: 0,
             description: '',
           }}
-          onSubmit={() => {}}
+          onSubmit={async (values) => {
+            await sleep(3000);
+            console.log('values', values);
+          }}
         >
           <FormikStep label="Personal Info">
             <Box paddingBottom={2}>
@@ -44,7 +59,8 @@ export default function Home() {
               />
             </Box>
           </FormikStep>
-          <FormikStep label="Bank Accounts"
+          <FormikStep
+            label="Bank Accounts"
             validationSchema={yup.object({
               money: yup.mixed().when('millionaire', {
                 is: true,
@@ -84,8 +100,8 @@ export default function Home() {
 
 export interface FormikStepProps
   extends Pick<FormikConfig<FormikValues>, 'children' | 'validationSchema'> {
-    label: string;
-  }
+  label: string;
+}
 
 export function FormikStep({ children }: FormikStepProps) {
   return <>{children}</>;
@@ -116,28 +132,45 @@ export function FormikStepper({
         }
       }}
     >
-      <Form autoComplete="off">
-      <Stepper alternativeLabel activeStep={step}>
-        {childrenArray.map((child) => (
-          <Step key={child.props.label}>
-            <StepLabel>{child.props.label}</StepLabel>
-          </Step>
-        ))}
-      </Stepper>
-        {currentChild}
-        {step > 0 ? (
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => setStep((s) => s - 1)}
-          >
-            Back
-          </Button>
-        ) : null}
-        <Button variant="contained" color="primary" type="submit">
-          {isLastStep() ? 'Submit' : 'Next'}
-        </Button>
-      </Form>
+      {({ isSubmitting }) => (
+        <Form autoComplete="off">
+          <Stepper alternativeLabel activeStep={step}>
+            {childrenArray.map((child) => (
+              <Step key={child.props.label}>
+                <StepLabel>{child.props.label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+          {currentChild}
+          <Grid container spacing={2}>
+            {step > 0 ? (
+              <Grid item>
+                <Button
+                  disabled={isSubmitting}
+                  variant="contained"
+                  color="primary"
+                  onClick={() => setStep((s) => s - 1)}
+                >
+                  Back
+                </Button>
+              </Grid>
+            ) : null}
+            <Grid item>
+              <Button
+                startIcon={
+                  isSubmitting ? <CircularProgress size="1rem" /> : null
+                }
+                disabled={isSubmitting}
+                variant="contained"
+                color="primary"
+                type="submit"
+              >
+                {isSubmitting ? 'Submitting' : isLastStep() ? 'Submit' : 'Next'}
+              </Button>
+            </Grid>
+          </Grid>
+        </Form>
+      )}
     </Formik>
   );
 }
