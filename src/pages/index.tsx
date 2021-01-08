@@ -1,8 +1,8 @@
-import { Card, CardContent } from '@material-ui/core';
+import { Card, CardContent, Button } from '@material-ui/core';
 import { Formik, Form, Field, FormikConfig, FormikValues } from 'formik';
 import { TextField, CheckboxWithLabel } from 'formik-material-ui';
 import * as yup from 'yup';
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 
 export default function Home() {
   return (
@@ -28,8 +28,7 @@ export default function Home() {
           }}
           onSubmit={() => {}}
         >
-          
-            <div>
+          <div>
             <Field name="firstname" component={TextField} label="First Name" />
             <Field name="lastname" component={TextField} label="Last Name" />
             <Field
@@ -38,35 +37,54 @@ export default function Home() {
               component={CheckboxWithLabel}
               Label={{ label: 'I am a millionaire!' }}
             />
-            </div>
-            <div>
+          </div>
+          <div>
             <Field
               type="number"
               name="money"
               component={TextField}
               label="Money I have!"
             />
-            </div>
-            <div>
+          </div>
+          <div>
             <Field
               name="description"
               component={TextField}
               label="Description"
             />
-            </div>
+          </div>
         </FormikStepper>
       </CardContent>
     </Card>
   );
 }
 
-export function FormikStepper({children, ...props}:FormikConfig<FormikValues>) {
-  const childrenArray = React.Children.toArray(children)
-  const [step, setStep] = useState(0)
-  const currentChild = childrenArray[step]
-  return(
-    <Formik {...props}>
-      <Form autoComplete="off">{currentChild}</Form>
+export function FormikStepper({
+  children,
+  ...props
+}: FormikConfig<FormikValues>) {
+  const childrenArray = React.Children.toArray(children);
+  const [step, setStep] = useState(0);
+  const currentChild = childrenArray[step];
+  const isLastStep = () => step === childrenArray.length - 1;
+  return (
+    <Formik
+      {...props}
+      onSubmit={async (values, helpers) => {
+        if (isLastStep()) {
+          await props.onSubmit(values, helpers);
+        } else {
+          setStep((s) => s + 1);
+        }
+      }}
+    >
+      <Form autoComplete="off">
+        {currentChild}
+        {step > 0 ? (
+          <Button onClick={() => setStep((s) => s - 1)}>Back</Button>
+        ) : null}
+        <Button type='submit'>{isLastStep()?'Submit':'Next'}</Button>
+      </Form>
     </Formik>
-  )
+  );
 }
