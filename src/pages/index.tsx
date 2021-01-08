@@ -9,16 +9,6 @@ export default function Home() {
     <Card>
       <CardContent>
         <FormikStepper
-          validationSchema={yup.object({
-            money: yup.mixed().when('millionaire', {
-              is: true,
-              then: yup
-                .number()
-                .required()
-                .min(1000000, "But you said you're a millionaire."),
-              other: yup.number().required(),
-            }),
-          })}
           initialValues={{
             firstname: '',
             lastname: '',
@@ -28,7 +18,7 @@ export default function Home() {
           }}
           onSubmit={() => {}}
         >
-          <div>
+          <FormikStep>
             <Field name="firstname" component={TextField} label="First Name" />
             <Field name="lastname" component={TextField} label="Last Name" />
             <Field
@@ -37,39 +27,61 @@ export default function Home() {
               component={CheckboxWithLabel}
               Label={{ label: 'I am a millionaire!' }}
             />
-          </div>
-          <div>
+          </FormikStep>
+          <FormikStep
+            validationSchema={yup.object({
+              money: yup.mixed().when('millionaire', {
+                is: true,
+                then: yup
+                  .number()
+                  .required()
+                  .min(1000000, "But you said you're a millionaire."),
+                other: yup.number().required(),
+              }),
+            })}
+          >
             <Field
               type="number"
               name="money"
               component={TextField}
               label="Money I have!"
             />
-          </div>
-          <div>
+          </FormikStep>
+          <FormikStep>
             <Field
               name="description"
               component={TextField}
               label="Description"
             />
-          </div>
+          </FormikStep>
         </FormikStepper>
       </CardContent>
     </Card>
   );
 }
 
+export interface FormikStepProps
+  extends Pick<FormikConfig<FormikValues>, 'children' | 'validationSchema'> {}
+
+export function FormikStep({ children }: FormikStepProps) {
+  return <>{children}</>;
+}
+
 export function FormikStepper({
   children,
   ...props
 }: FormikConfig<FormikValues>) {
-  const childrenArray = React.Children.toArray(children);
+  const childrenArray = React.Children.toArray(
+    children
+  ) as React.ReactElement<FormikStepProps>[];
   const [step, setStep] = useState(0);
-  const currentChild = childrenArray[step];
+  const currentChild = childrenArray[step] as React.ReactElement<FormikStepProps>
+  console.log(currentChild)
   const isLastStep = () => step === childrenArray.length - 1;
   return (
     <Formik
       {...props}
+      validationSchema={currentChild.props.validationSchema}
       onSubmit={async (values, helpers) => {
         if (isLastStep()) {
           await props.onSubmit(values, helpers);
@@ -83,7 +95,7 @@ export function FormikStepper({
         {step > 0 ? (
           <Button onClick={() => setStep((s) => s - 1)}>Back</Button>
         ) : null}
-        <Button type='submit'>{isLastStep()?'Submit':'Next'}</Button>
+        <Button type="submit">{isLastStep() ? 'Submit' : 'Next'}</Button>
       </Form>
     </Formik>
   );
